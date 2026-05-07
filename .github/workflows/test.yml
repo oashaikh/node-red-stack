@@ -1,0 +1,52 @@
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  flow-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements-dev.txt
+      - run: pytest
+
+  compose-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate docker-compose syntax
+        run: docker compose config --quiet
+
+  stack-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Boot Mosquitto + Node-RED
+        run: docker compose up -d
+      - name: Wait for Node-RED admin API to come up
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:1880/flows > /dev/null 2>&1; then
+              echo "node-red ready after ${i}s"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "node-red did not come up in time"
+          docker compose logs
+          exit 1
+      - name: Verify Mosquitto reachable
+        run: |
+          docker run --rm --network host eclipse-mosquitto:2 \
+            mosquitto_pub -h localhost -p 1883 -t ci/test -m "hello"
+      - name: Tear down
+        if: always()
+        run: docker compose down -v
