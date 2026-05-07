@@ -15,6 +15,7 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
+          cache-dependency-path: requirements-dev.txt
       - run: pip install -r requirements-dev.txt
       - run: pytest
 
@@ -29,19 +30,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # The official nodered/node-red image runs as UID 1000 internally and
+      # writes to /data. The bind-mounted ./node-red-data is initially owned
+      # by the runner's UID, so node-red can't write there. Chown to 1000
+      # before bringing the stack up.
+      - name: Prepare node-red-data permissions
+        run: sudo chown -R 1000:1000 node-red-data
       - name: Boot Mosquitto + Node-RED
         run: docker compose up -d
       - name: Wait for Node-RED admin API to come up
         run: |
-          for i in $(seq 1 30); do
+          for i in $(seq 1 60); do
             if curl -fsS http://localhost:1880/flows > /dev/null 2>&1; then
               echo "node-red ready after ${i}s"
               exit 0
             fi
             sleep 2
           done
-          echo "node-red did not come up in time"
-          docker compose logs
+          echo "node-red did not come up in time; container logs:"
+          docker compose logs node-red
           exit 1
       - name: Verify Mosquitto reachable
         run: |
