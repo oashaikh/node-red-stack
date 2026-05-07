@@ -1,0 +1,76 @@
+[
+  {
+    "id": "tab1",
+    "type": "tab",
+    "label": "Sample MQTT flow",
+    "disabled": false,
+    "info": "MQTT in -> JSON parse -> debug, plus an inject -> publish."
+  },
+  {
+    "id": "broker1",
+    "type": "mqtt-broker",
+    "name": "Local Mosquitto",
+    "broker": "mosquitto",
+    "port": "1883",
+    "clientid": "node-red",
+    "autoConnect": true,
+    "usetls": false,
+    "protocolVersion": "5",
+    "keepalive": "60",
+    "cleansession": true
+  },
+  {
+    "id": "mqtt_in_1",
+    "type": "mqtt in",
+    "z": "tab1",
+    "name": "home/+/temp",
+    "topic": "home/+/temp",
+    "qos": "1",
+    "datatype": "auto",
+    "broker": "broker1",
+    "x": 140,
+    "y": 80,
+    "wires": [["debug1"]]
+  },
+  {
+    "id": "debug1",
+    "type": "debug",
+    "z": "tab1",
+    "name": "incoming temps",
+    "active": true,
+    "tosidebar": true,
+    "complete": "payload",
+    "x": 360,
+    "y": 80,
+    "wires": []
+  },
+  {
+    "id": "inject1",
+    "type": "inject",
+    "z": "tab1",
+    "name": "every 30s",
+    "props": [{ "p": "payload" }],
+    "repeat": "30",
+    "crontab": "",
+    "once": false,
+    "topic": "home/test/temp",
+    "payload": "{\"temp_c\":21.5}",
+    "payloadType": "json",
+    "x": 130,
+    "y": 160,
+    "wires": [["mqtt_out_1"]]
+  },
+  {
+    "id": "mqtt_out_1",
+    "type": "mqtt out",
+    "z": "tab1",
+    "name": "publish temp",
+    "topic": "",
+    "qos": "1",
+    "retain": "false",
+    "broker": "broker1",
+    "x": 360,
+    "y": 160,
+    "wires": []
+  }
+]

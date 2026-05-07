@@ -1,0 +1,32 @@
+# Node-RED runtime data — flows.json is committed but everything else is regenerated
+node-red-data/.config*.json
+node-red-data/.flows.json.backup
+node-red-data/.npm/
+node-red-data/.sessions.json
+node-red-data/lib/
+node-red-data/node_modules/
+node-red-data/package-lock.json
+node-red-data/.config.runtime.json
+
+# Mosquitto runtime
+mosquitto/data/
+mosquitto/log/
+
+# Python venv
+.venv/
+__pycache__/
+*.py[cod]
+
+# Test reports
+report.html
+htmlcov/
+.coverage
+junit.xml
+
+.env
+.env.local
+
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
